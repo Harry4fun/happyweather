@@ -1,0 +1,11 @@
+{
+  "pages": [
+    "pages/home/home"
+  ],
+  "window": {
+    "backgroundTextStyle": "dark",
+    "navigationBarBackgroundColor": "#40a7e7",
+    "navigationBarTitleText": "一周天气",
+    "navigationBarTextStyle": "light"
+  }
+}

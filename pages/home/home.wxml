@@ -1,0 +1,16 @@
+<view class="container {{ isIPhoneX ? 'iphonex-padding':''}}">
+  <view class="bcg" wx:if='{{!bcgImg}}' style='background ：{{bcgColor}}'></view>
+  <image class='bcg' wx:if='{{bcgImg}}' src='{{bcgImg}}' mode='aspectFill'></image>
+  <!-- 城市搜索框 -->
+  <view class='search' style='background:rgba(255,255,255,0)'>
+    <view class='wrapper'>
+      <image src='/img/search_grey.png'></image>
+      <input placeholder-class="placeholderClass" confirm-type="search" placeholder="查询其他城市" maxlength='20'
+      bindconfirm="commitSearch" value='{{searchText}}' disabled='{{!enableSearch}}'></input>
+    </view>
+  </view>
+  <!-- 切换主题 -->
+  <view class='chooseBcg' wx:if="{{bcgImgAreaShow}}">
+  
+  </view> 
+</view>

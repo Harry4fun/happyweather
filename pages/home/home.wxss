@@ -53,3 +53,18 @@ margin-right: 16rpx;
 .search input{
   flex: 1;
 }
+
+.chooseBcg {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh；
+  position：fixed;
+  z-index: 100;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  font-size: 24rpx;
+  color: #333;
+
+}

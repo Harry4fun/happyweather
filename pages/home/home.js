@@ -8,7 +8,7 @@
 // 500以上 爆表：有毒物
 let globalData = getApp().globalData;
 let messages = require('../../data/messages.js');
-
+let utils = require('../../utils/utils.js');
 Page({
   data: {
     isIPhoneX: globalData.isIPhoneX,
@@ -137,5 +137,96 @@ Page({
     pos: {},
     openSettingButtonShow: false
   },
+  calcPM(value) {
+    if (value > 0 && value <= 50) {
+      return {
+        val: value,
+        desc: '优',
+        detail: '',
+      }
+    } else if (value > 50 && value <= 100) {
+      return {
+        val: value,
+        desc: '良',
+        detail: '',
+      }
+    } else if (value > 100 && value <= 150) {
+      return {
+        val: value,
+        desc: '轻度污染',
+        detail: '对敏感人群不健康',
+      }
+    } else if (value > 150 && value <= 200) {
+      return {
+        val: value,
+        desc: '中度污染',
+        detail: '不健康',
+      }
+    } else if (value > 200 && value <= 300) {
+      return {
+        val: value,
+        desc: '重度污染',
+        detail: '非常不健康',
+      }
+    } else if (value > 300 && value <= 500) {
+      return {
+        val: value,
+        desc: '严重污染',
+        detail: '有毒物',
+      }
+    } else if (value > 500) {
+      return {
+        val: value,
+        desc: '爆表',
+        detail: '能出来的都是条汉子',
+      }
+    }
+  },
+  /**
+   * 处理接口请求后拿到的数据
+   * 
+   */
+  success (data) {
+    this.setData({
+      openSettingButtonShow : false,
+    });
+    wx.stopPullDownRefresh();
+    let now = new Date();
+    data.updateTime = now.getTime();
+    data.updateTimeFormat = utils.formatDate(now, "MM-dd hh:mm");
+    let results = data.originalData.results[0] || {};
+    data.pm = this.calcPM(results['pm25']);
+    // 当天实时温度
+    data.temperature = `${results.weather_data[0].date.match(/\d+/g)[2]}` ;
+    wx.setStorage({
+      key: 'cityDatas',
+      data: data,
+    });
+    
+    this.setData({
+      cityDatas : data
+    });
+    console.log('cityDatas', cityDatas);
+  },
+
+  commitSearch(res) {
+    // 去掉特殊符号
+    let val = ((res.detail || {}).value || '').replace(/\s+/g, '')；
+    this.search(val);
+  },
+  search(val){
+    // 隐藏彩蛋
+    if(val =='520' || val == '512') {
+      this.setData({
+        searchText : ''
+      });
+      this.dance();
+      return
+    }
+    
+
+  }
+
+
   
 })

@@ -4,18 +4,16 @@
   <!-- 城市搜索框 -->
   <view class='search' style='background:rgba(255,255,255,0)' wx:if='true'>
     <view class='wrapper'>
-      <image src='/img/search_grey.png'></image>
-      <input placeholder-class="placeholderClass" confirm-type="search" placeholder="查询其他城市" maxlength='20'
-      bindconfirm="commitSearch" value='{{searchText}}' disabled='{{!enableSearch}}'></input>
+      <image src='/img/search.png'></image>
+      <input placeholder-class="placeholderClass" confirm-type="search" placeholder="查询其他城市" maxlength='20' bindconfirm="commitSearch" value='{{searchText}}' disabled='{{!enableSearch}}'></input>
     </view>
   </view>
   <!-- 切换主题 -->
-  <view class='chooseBcg' wx:if="{{bcgImgAreaShow}}">
+  <view class='chooseBcg' wx:if='{{bcgImgAreaShow}}'>
     <view class='top'>
       <view class='title'>更换背景</view>
       <view class='bcgs'>
-        <view class='border {{ bcgImgIndex === index ? "active" : "" }}' wx:for='{{bcgImgList}}'
-        wx:key='{{index}}' >
+        <view class='border {{ bcgImgIndex === index ? "active" : "" }}' wx:for='{{bcgImgList}}' wx:key='{{index}}'>
           <image src="{{item.src}}" catchtap='chooseBcg' data-index="{{ index }}" data-src='{{item.src}}'></image>
         </view>
       </view>
@@ -24,8 +22,8 @@
       <image src="/img/up-arrow.png"></image>
     </view>
   </view>
-  
-  <view class='content' wx:if='{{!bcgImgAreaShow}}' style='margin-top:{{ setting.hiddenSearch ? 20 : 60}} px'>
+
+  <view class='content' wx:if='{{!bcgImgAreaShow}}' style='margin-top: {{ setting.hiddenSearch ? 20 : 60}}px'>
     <view class='avatarInfo' catchtap='showBcgImgArea'>
       <open-data class='avatar' type='userAvatarUrl'></open-data>
       <open-data class='name' type='userNickName'></open-data>
@@ -33,15 +31,49 @@
     </view>
     <!-- 当前天气 -->
     <view class='info'>
-      <view class='name'>{{ cityDatas.originalData.results[0].currentCity || '定位中'}}</view>
-      <text class='time' wx:if='{{ cityDatas.updateTimeFormat }}'>{{cityDatas.updateTimeFormat}}更新</text>
+      <view class='city'>
+        <view class='name'>{{ cityDatas.originalData.results[0].currentCity || '定位中'}}</view>
+        <text class='time' wx:if='{{ cityDatas.updateTimeFormat }}'>{{cityDatas.updateTimeFormat}}更新</text>
+      </view>
+      <view class='message'>{{message}}</view>
+      <view class='temp num' wx:if='{{true}}' decode='{{true}}'>{{cityDatas.temperature || '--'}}
+        <text style='font-size:90rpx'>°</text>
+      </view>
+      <view class='weather'>{{cityDatas.originalData.results[0].weather_data[0].weather || '--'}}</view>
+      <view class='pm'>
+        <text>优 20</text>
+      </view>
     </view>
-    <view class='message'>{{message}}</view>
-    <view class='temp num' wx:if='{{cityDatas.temperature}}' decode='true'>{{cityDatas.temperature || '--'}}<text style='font-size:90rpx'>°</text></view>
-    <view class='weather'>{{cityDatas.originalData.results[0].weather_data[0].weather || '--'}}</view>
-    <!-- <view class='pm' wx:if='{{cityDatas.pm.val}}'> -->
-        <view class='pm'>
-    <text>优 20</text>
+    <!-- 未来几天天气 -->
+    <view class='guide'>
+      <view class='item' wx:for='{{cityDatas.originalData.results[0].weather_data}}' wx:key='{{index}}'>
+        <view class='date i'>{{index === 0 ? '今天' : item.date}}</view>
+        <view class='temperature i'>{{item.temperature}}</view>
+        <view class='weather i'>{{item.weather}}</view>
+        <view class='wind i'>{{item.wind}}</view>
+      </view>
     </view>
-  </view> 
+    <!-- 生活指数 -->
+    <view class='livingIndex'>
+      <view class='item' wx:for='{{cityDatas.originalData.results[0].index}}' wx:key='{{index}}'>
+        <image class='icon' src='{{icons[index]}}'></image>
+        <view class='right'>
+          <view class='key'>{{item.tipt}} {{item.zs}}</view>
+          <view class='value'>{{item.des}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+  <!-- 收起状态的菜单按钮 -->
+  <view class='openSettingButton' wx:if='{{openSettingButtonShow}}'>
+    <image src='/img/unlock.png'></image>
+    <button open-type='openSetting'></button>
+  </view>
+  <!-- 展开状态的菜单按钮 -->
+  <view class='menus' wx:if='{{!bcgImgAreaShow}}'>
+    <image src='/img/location.png' animation='{{animationOne}}' class='menu' bindtap='menuOne' style='top:{{pos.top}}px;left:{{pos.left}}px;'></image>
+    <image src='/img/setting.png' animation='{{animationTwo}}' class='menu' bindtap='menuTwo' style='top:{{pos.top}}px;left:{{pos.left}}px;'></image>
+    <image src='/img/info.png' animation='{{animationThree}}' class='menu' bindtap='menuThree' style='top:{{pos.top}}px;left:{{pos.left}}px;'></image>
+    <image src='/img/menu.png' animation='{{animationMain}}' class='menu main' bindtap='menuMain' catchtouchmove='menuMainMove' style='top:{{pos.top}}px;left:{{pos.left}}px;'></image>
+  </view>
 </view>

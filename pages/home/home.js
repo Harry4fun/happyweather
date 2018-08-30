@@ -130,6 +130,7 @@ Page({
     let results = data.originalData.results[0] || {}
     data.pm = this.calcPM(results['pm25'])
     // 当天实时温度
+    // \d表示数字, + 表示一个或多个
     data.temperature = `${results.weather_data[0].date.match(/\d+/g)[2]}`
     wx.setStorage({
       key: 'cityDatas',

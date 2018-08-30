@@ -41,7 +41,7 @@
       </view>
       <view class='weather'>{{cityDatas.originalData.results[0].weather_data[0].weather || '--'}}</view>
       <view class='pm'>
-        <text>优 20</text>
+        <text>{{cityDatas.pm.desc}} {{cityDatas.pm.val}}</text>
       </view>
     </view>
     <!-- 未来几天天气 -->

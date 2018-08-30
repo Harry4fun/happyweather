@@ -8,7 +8,8 @@
 // 500以上 爆表：有毒物
 let globalData = getApp().globalData;
 let messages = require('../../data/messages.js');
-let utils = require('../../utils/utils.js');
+let bmap = require('../../lib/bmap-wx.js')
+let utils = require('../../utils/utils.js')
 Page({
   data: {
     isIPhoneX: globalData.isIPhoneX,
@@ -182,51 +183,322 @@ Page({
       }
     }
   },
-  /**
-   * 处理接口请求后拿到的数据
-   * 
-   */
-  success (data) {
+  success(data) {
     this.setData({
-      openSettingButtonShow : false,
-    });
-    wx.stopPullDownRefresh();
-    let now = new Date();
-    data.updateTime = now.getTime();
-    data.updateTimeFormat = utils.formatDate(now, "MM-dd hh:mm");
-    let results = data.originalData.results[0] || {};
-    data.pm = this.calcPM(results['pm25']);
+      openSettingButtonShow: false,
+    })
+    wx.stopPullDownRefresh()
+    let now = new Date()
+    // 存下来源数据
+    data.updateTime = now.getTime()
+    data.updateTimeFormat = utils.formatDate(now, "MM-dd hh:mm")
+    let results = data.originalData.results[0] || {}
+    data.pm = this.calcPM(results['pm25'])
     // 当天实时温度
-    data.temperature = `${results.weather_data[0].date.match(/\d+/g)[2]}` ;
+    data.temperature = `${results.weather_data[0].date.match(/\d+/g)[2]}`
     wx.setStorage({
       key: 'cityDatas',
       data: data,
-    });
-    
+    })
     this.setData({
-      cityDatas : data
-    });
-    console.log('cityDatas', cityDatas);
+      cityDatas: data,
+    })
   },
-
   commitSearch(res) {
-    // 去掉特殊符号
-    let val = ((res.detail || {}).value || '').replace(/\s+/g, '')；
-    this.search(val);
+    let val = ((res.detail || {}).value || '').replace(/\s+/g, '')
+    this.search(val)
   },
-  search(val){
-    // 隐藏彩蛋
-    if(val =='520' || val == '512') {
+  // 彩蛋
+  dance() {
+    this.setData({
+      enableSearch: false,
+    })
+    let heartbeat = this.selectComponent('#heartbeat')
+    heartbeat.dance(() => {
       this.setData({
-        searchText : ''
-      });
+        showHeartbeat: false,
+        enableSearch: true,
+      })
+      this.setData({
+        showHeartbeat: true,
+      })
+    })
+  },
+  // 搜索城市
+  search(val) {
+    // 彩蛋
+    if (val === '520' || val === '521') {
+      this.setData({
+        searchText: '',
+      })
       this.dance();
       return
     }
-    
+    wx.pageScrollTo({
+      scrollTop: 0,
+      duration: 300,
+    })
+    if (val) {
+      this.geocoder(val, (loc) => {
+        this.init({
+          location: `${loc.lng},${loc.lat}`
+        })
+      })
+    }
+  },
+  geocoder(address, success) {
+    wx.request({
+      url: getApp().setGeocoderUrl(address),
+      success(res) {
+        let data = res.data || {};
+        if(!data.status) {
+          let location = (data.result || {}).location || {};
+          success && success(location);
+        } else {
+          wx.showToast({
+            title: data.msg || '网络不给力，请稍后再试',
+            icon:'none'
+          })
+        }
+      },
+      fail(res){
+        wx.showToast({
+          title: res.errMsg || '网络不给力，请稍后再试',
+          icon: 'none',
+        })
+      },
+      complete: () => {
+        this.setData({
+          searchText: ''
+        })
+      }
+    })
+  },
+  // wx.openSetting 要废弃，button open-type openSetting 2.0.7 后支持
+  // 使用 wx.canIUse('openSetting') 都会返回 true，这里判断版本号区分
+  canUseOpenSettingApi() {
+    let systeminfo = getApp().globalData.systeminfo
+    let SDKVersion = systeminfo.SDKVersion
+    let version = utils.cmpVersion(SDKVersion, '2.0.7')
+    if (version < 0) {
+      return true
+    } else {
+      return false
+    }
+  },
+  init(params) {
+    let BMap = new bmap.BMapWX({
+      ak: globalData.ak,
+    });
+    BMap.weather({
+      location: params.location,
+      fail: this.fail,
+      success: this.success,
+    });
+  },
+  fail(res) {
+    wx.stopPullDownRefresh();
+    let errMsg = res.errMsg || ''
+    // 拒绝授权地理位置权限
+    if (errMsg.indexOf('deny') !== -1 || errMsg.indexOf('denied') !== -1) {
+      wx.showToast({
+        title: '需要开启地理位置权限',
+        icon: 'none',
+        duration: 2500,
+        success: (res) => {
+          if (this.canUseOpenSettingApi()) {
+            let timer = setTimeout(() => {
+              clearTimeout(timer)
+              wx.openSetting({})
+            }, 2500)
+          } else {
+            this.setData({
+              openSettingButtonShow: true,
+            })
+          }
+        },
+      })
+    } else {
+      wx.showToast({
+        title: '网络不给力，请稍后再试',
+        icon: 'none',
+      })
+    }
+  },
+  onPullDownRefresh(res) {
+    this.init({})
+  },
+  /**
+   * 上次存储的菜单按钮位置
+   */
+  setMenuPosition() {
+    wx.getStorage({
+      key: 'pos',
+      success: (res) => {
+        this.setData({
+          pos: res.data,
+        })
+      },
+      fail: (res) => {
+        this.setData({
+          pos: {},
+        })
+      },
+    })
+  },
+  // 获取之前存储的静态天气数据
+  getCityDatas() {
+    let cityDatas = wx.getStorage({
+      key: 'cityDatas',
+      success: (res) => {
+        this.setData({
+          cityDatas: res.data,
+        })
+      },
+    })
+  },
+  setBcgImg(index) {
+    if (index) {
+      this.setData({
+        bcgImgIndex: index,
+        bcgImg: this.data.bcgImgList[index].src,
+        bcgColor: this.data.bcgImgList[index].topColor,
+      })
+      this.setNavigationBarColor()
+      return
+    }
+    wx.getStorage({
+      key: 'bcgImgIndex',
+      success: (res) => {
+        let bcgImgIndex = res.data || 0
+        this.setData({
+          bcgImgIndex,
+          bcgImg: this.data.bcgImgList[bcgImgIndex].src,
+          bcgColor: this.data.bcgImgList[bcgImgIndex].topColor,
+        })
+        this.setNavigationBarColor()
+      },
+      fail: () => {
+        this.setData({
+          bcgImgIndex: 0,
+          bcgImg: this.data.bcgImgList[0].src,
+          bcgColor: this.data.bcgImgList[0].topColor,
+        })
+        this.setNavigationBarColor()
+      },
+    })
+  },
+  setNavigationBarColor(color) {
+    let bcgColor = color || this.data.bcgColor
+    wx.setNavigationBarColor({
+      frontColor: '#ffffff',
+      backgroundColor: bcgColor
+    })
+  },
+  onShow(){
+    this.setBcgImg();
+    this.getCityDatas();
+    this.setMenuPosition();
+    this.setNavigationBarColor('#2d2225');
+    this.initSetting((setting) => {
+      this.checkUpdate(setting)
+    });
+    if (!this.data.cityChanged) {
+      this.init({})
+    } else {
+      this.search(this.data.searchCity)
+      this.setData({
+        cityChanged: false,
+        searchCity: '',
+      })
+    }
+    this.setData({
+      message: messages.messages(),
+    })
+  },
+  onHide(){
+    wx.setStorage({
+      key: 'pos',
+      data: this.data.pos,
+    })
+  },
+  initSetting(successFunc) {
+    wx.getStorage({
+      key: 'setting',
+      success: (res) => {
+        let setting = res.data || {}
+        this.setData({
+          setting,
+        })
+        successFunc && successFunc(setting)
+      },
+      fail: () => {
+        this.setData({
+          setting: {},
+        })
+      },
+    })
+  },
+  checkUpdate(setting) {
+    // 兼容低版本
+    if (!setting.forceUpdate || !wx.getUpdateManager) {
+      return
+    }
+    let updateManager = wx.getUpdateManager()
+    updateManager.onCheckForUpdate((res) => {
+      console.error(res)
+    })
+    updateManager.onUpdateReady(function () {
+      wx.showModal({
+        title: '更新提示',
+        content: '新版本已下载完成，是否重启应用？',
+        success: function (res) {
+          if (res.confirm) {
+            updateManager.applyUpdate()
+          }
+        }
+      })
+    })
+  },
+  showBcgImgArea() {
+    this.setData({
+      bcgImgAreaShow: true,
+    })
+  },
+  hideBcgImgArea() {
+    this.setData({
+      bcgImgAreaShow: false,
+    })
+  },
+  chooseBcg(e) {
+    let dataset = e.currentTarget.dataset
+    let src = dataset.src
+    let index = dataset.index
+    this.setBcgImg(index)
+    wx.setStorage({
+      key: 'bcgImgIndex',
+      data: index,
+    })
+  },
+  onShareAppMessage(res){
+    return {
+      title: 'Happy Weather--快乐天气',
+      path: `/pages/home/home`,
+      // imageUrl: '',
+      success() { },
+      fail(e) {
+        let errMsg = e.errMsg || ''
+        // 对不是用户取消转发导致的失败进行提示
+        let msg = '分享失败，可重新分享'
+        if (errMsg.indexOf('cancel') !== -1) {
+          msg = '取消分享'
+        }
+        wx.showToast({
+          title: msg,
+          icon: 'none',
+        })
+      }
+    }
+  },
 
-  }
-
-
-  
 })

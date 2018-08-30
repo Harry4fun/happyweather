@@ -151,7 +151,7 @@ margin-right: 16rpx;
 .info {
   padding-bottom: 50rpx;
   /* border-bottom: 1rpx solid rgba(240, 240, 240, .4); */
-  background: rgba(0, 0, 0, .6);
+  /* background: rgba(0, 0, 0, .6); */
 }
 .info .temp,
 .info .pm,
@@ -212,7 +212,7 @@ margin-right: 16rpx;
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  align-items: center;
+  align-items : center;
   font-size: 24rpx;
   padding-top: 20rpx;
   margin-bottom: 20rpx;

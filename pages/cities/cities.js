@@ -86,7 +86,8 @@ Page({
     wx.navigateBack({})
   },
   onLoad() {
-    let cities = this.getSortedAreaObj(staticData.cities || [])
+    let cities = this.getSortedAreaObj(staticData.cities || []);
+    console.log('showItems', cities)
     this.setData({
       cities,
       showItems: cities

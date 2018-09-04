@@ -437,5 +437,125 @@ Page({
       }
     }
   },
-
+  menuMainMove(e) {
+    // 如果已经弹出来了，需要先收回去，否则会受 top、left 会影响
+    if (this.data.hasPopped) {
+      this.takeback()
+      this.setData({
+        hasPopped: false,
+      })
+    }
+    let windowWidth = SYSTEMINFO.windowWidth
+    let windowHeight = SYSTEMINFO.windowHeight
+    let touches = e.touches[0]
+    let clientX = touches.clientX
+    let clientY = touches.clientY
+    // 边界判断
+    if (clientX > windowWidth - 40) {
+      clientX = windowWidth - 40
+    }
+    if (clientX <= 90) {
+      clientX = 90
+    }
+    if (clientY > windowHeight - 40 - 60) {
+      clientY = windowHeight - 40 - 60
+    }
+    if (clientY <= 60) {
+      clientY = 60
+    }
+    let pos = {
+      left: clientX,
+      top: clientY,
+    }
+    this.setData({
+      pos,
+    })
+  },
+  menuMain() {
+    if (!this.data.hasPopped) {
+      this.popp()
+      this.setData({
+        hasPopped: true,
+      })
+    } else {
+      this.takeback()
+      this.setData({
+        hasPopped: false,
+      })
+    }
+  },
+  menuOne() {
+    this.menuMain()
+    wx.navigateTo({
+      url: '/pages/cities/cities',
+    })
+  },
+  menuTwo() {
+    this.menuMain()
+    wx.navigateTo({
+      url: '/pages/setting/setting',
+    })
+  },
+  menuThree() {
+    this.menuMain()
+    wx.navigateTo({
+      url: '/pages/about/about',
+    })
+  },
+  popp() {
+    let animationMain = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    let animationOne = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    let animationTwo = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    let animationThree = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    animationMain.rotateZ(180).step()
+    animationOne.translate(-50, -60).rotateZ(360).opacity(1).step()
+    animationTwo.translate(-90, 0).rotateZ(360).opacity(1).step()
+    animationThree.translate(-50, 60).rotateZ(360).opacity(1).step()
+    this.setData({
+      animationMain: animationMain.export(),
+      animationOne: animationOne.export(),
+      animationTwo: animationTwo.export(),
+      animationThree: animationThree.export(),
+    })
+  },
+  takeback() {
+    let animationMain = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    let animationOne = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    let animationTwo = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    let animationThree = wx.createAnimation({
+      duration: 200,
+      timingFunction: 'ease-out'
+    })
+    animationMain.rotateZ(0).step();
+    animationOne.translate(0, 0).rotateZ(0).opacity(0).step()
+    animationTwo.translate(0, 0).rotateZ(0).opacity(0).step()
+    animationThree.translate(0, 0).rotateZ(0).opacity(0).step()
+    this.setData({
+      animationMain: animationMain.export(),
+      animationOne: animationOne.export(),
+      animationTwo: animationTwo.export(),
+      animationThree: animationThree.export(),
+    })
+  },
 })
